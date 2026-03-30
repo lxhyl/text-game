@@ -342,22 +342,23 @@ function getPulseRadius(pulse: Pulse): number {
 
 function buildGlyphCorpus(): string {
   const liveNote = `Live scoreboard: P1 ${players[0].score}-${players[0].hp}, P2 ${players[1].score}-${players[1].hp}.`
+  const indentedParagraphs = ARTICLE_PARAGRAPHS.map((paragraph) => `    ${paragraph}`)
   const articleBlock = [
     ARTICLE_TITLE,
     ARTICLE_DECK,
     ARTICLE_META,
     '',
-    ARTICLE_PARAGRAPHS[0],
+    indentedParagraphs[0],
     '',
-    ARTICLE_PARAGRAPHS[1],
+    indentedParagraphs[1],
     '',
-    ARTICLE_PARAGRAPHS[2],
+    indentedParagraphs[2],
     '',
-    ARTICLE_PARAGRAPHS[3],
+    indentedParagraphs[3],
     '',
-    ARTICLE_PARAGRAPHS[4],
+    indentedParagraphs[4],
     '',
-    ARTICLE_PARAGRAPHS[5],
+    indentedParagraphs[5],
     '',
     liveNote,
   ].join('\n')
