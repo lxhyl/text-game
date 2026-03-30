@@ -123,31 +123,16 @@ const PLAYER_TWO = {
   color: '#8ecbff',
   glow: 'rgba(96, 186, 255, 0.36)',
 }
-const BASE_STREAMS = [
-  'dual pilots split the paragraph and keep the gutters alive',
-  'two fighters cut the glyph field into three columns and clash inside the lanes',
-  'fire spin pulse collide wrap drift re-enter on the next slot',
-  '[]<>[]<>[][]<> press against the silhouette and route around impact',
-  'each hit shakes a line loose and the next line chooses another passage',
-  'every line in every column yields to both players while the gutters stay clear',
-  'the sentence remembers both fighters and bends around their duel',
-  '\\\\\\\\ two cursors crossing \\\\ one layout stream folding around both',
-  'glyph sport / local versus / same keyboard / same text field',
-  'fireballs cross the lanes while spins and pulses press against the columns',
-] as const
-const NOISE_MOTIFS = [
-  ':::',
-  '///',
-  '\\\\\\',
-  '<>',
-  '[]',
-  '++',
-  '--',
-  '__',
-  '..',
-  'oo',
-  '><',
-  '##',
+const ARTICLE_TITLE = 'NASA Sets Coverage for First Artemis Crewed Mission Around Moon'
+const ARTICLE_DECK = 'A public schedule released by NASA details briefings, launch coverage, mission updates, and online viewing plans for the first crewed Artemis flight.'
+const ARTICLE_META = 'By Jennifer M. Dooren | NASA Headquarters | March 25, 2026 | Media Advisory M26-026'
+const ARTICLE_PARAGRAPHS = [
+  'NASA said a broad run of prelaunch, launch, and mission events for Artemis II will stream online as the agency works toward the first crewed flight of the Artemis program. The mission is targeted no earlier than April 1, with a two-hour launch window opening in the early evening and additional opportunities scheduled in the following days.',
+  'Artemis II will send Reid Wiseman, Victor Glover, Christina Koch, and Canadian Space Agency astronaut Jeremy Hansen on an approximately 10-day journey around the Moon. NASA says the flight is meant to test Orion life-support systems with people aboard for the first time and to prepare the way for later crewed lunar missions.',
+  'The agency said briefings, events, and around-the-clock mission coverage will be available through NASA online video channels. Separate streams will be used for major events as launch approaches, and NASA said timing remains subject to change as mission planning continues.',
+  'Highlighted events in the published schedule include astronaut arrival activities, a quarantine media event, status briefings, a prelaunch news conference, and launch-day coverage that begins with tanking operations before shifting into full mission broadcasting. NASA also plans a postlaunch news conference after Orion is sent toward high Earth orbit.',
+  'During the mission, the agency expects to provide continuing updates, live downlinks, and daily status briefings from Johnson Space Center, except when lunar flyby operations take precedence. NASA also said imagery, tracking updates, and public-facing mission resources will be updated throughout the flight.',
+  'The release closes by framing Artemis as part of a longer effort to return astronauts to the Moon, expand scientific discovery, and build operational experience for eventual crewed missions to Mars. In that sense, the coverage plan functions not only as logistics, but also as a public roadmap for the next major American mission beyond low Earth orbit.',
 ] as const
 
 const players: Player[] = [
@@ -245,8 +230,8 @@ function normalize(vec: Vec2): Vec2 {
 }
 
 function getGlyphTypography() {
-  const size = clamp(Math.round(Math.min(CANVAS_W, CANVAS_H) * 0.0145), 8, 13)
-  const lineHeight = Math.round(size * 1.02)
+  const size = clamp(Math.round(Math.min(CANVAS_W, CANVAS_H) * 0.016), 9, 15)
+  const lineHeight = Math.round(size * 1.04)
   return {
     size,
     lineHeight,
@@ -292,14 +277,6 @@ function getPlayerById(playerId: number): Player {
 
 function getOtherPlayer(playerId: number): Player {
   return players[playerId === 1 ? 1 : 0]
-}
-
-function makeNoiseRibbon(seed: number, count: number): string {
-  const parts: string[] = []
-  for (let i = 0; i < count; i++) {
-    parts.push(NOISE_MOTIFS[(seed + i * 3) % NOISE_MOTIFS.length])
-  }
-  return parts.join(' ')
 }
 
 function emitBurst(token: string, life: number) {
@@ -364,23 +341,32 @@ function getPulseRadius(pulse: Pulse): number {
 }
 
 function buildGlyphCorpus(): string {
-  const header = players.map((player) => {
-    const state = player.respawn > 0 ? `respawn:${player.respawn.toFixed(1)}` : `hp:${player.hp}`
-    return `${player.name} score:${player.score} ${state} at ${Math.round(player.x / 40)}:${Math.round(player.y / 40)}`
-  }).join(' || ')
-  const activeBursts = bursts.map((burst) => burst.token).join(' ')
-  const sections: string[] = [header, activeBursts]
+  const liveNote = `Live scoreboard: P1 ${players[0].score}-${players[0].hp}, P2 ${players[1].score}-${players[1].hp}.`
+  const articleBlock = [
+    ARTICLE_TITLE,
+    ARTICLE_DECK,
+    ARTICLE_META,
+    '',
+    ARTICLE_PARAGRAPHS[0],
+    '',
+    ARTICLE_PARAGRAPHS[1],
+    '',
+    ARTICLE_PARAGRAPHS[2],
+    '',
+    ARTICLE_PARAGRAPHS[3],
+    '',
+    ARTICLE_PARAGRAPHS[4],
+    '',
+    ARTICLE_PARAGRAPHS[5],
+    '',
+    liveNote,
+  ].join('\n')
 
-  for (let i = 0; i < 260; i++) {
-    const base = BASE_STREAMS[(i + players[0].score * 3 + players[1].score * 5) % BASE_STREAMS.length]
-    const noise = makeNoiseRibbon(i + players[0].hp + players[1].hp, 12)
-    const duel = i % 2 === 0
-      ? `P1-${players[0].hp}-${players[0].score} crossing P2-${players[1].hp}-${players[1].score}`
-      : `P2-${players[1].hp}-${players[1].score} returning through P1-${players[0].hp}-${players[0].score}`
-    sections.push(`${noise} ${base} ${duel} ${header} ${noise}`)
+  const sections: string[] = []
+  for (let i = 0; i < 10; i++) {
+    sections.push(articleBlock)
   }
-
-  return sections.join(' ')
+  return sections.join('\n\n')
 }
 
 function computeGlyphSignature(): string {
@@ -388,21 +374,13 @@ function computeGlyphSignature(): string {
     p1: {
       hp: players[0].hp,
       score: players[0].score,
-      cellX: Math.floor(players[0].x / 64),
-      cellY: Math.floor(players[0].y / 64),
       respawn: players[0].respawn > 0,
     },
     p2: {
       hp: players[1].hp,
       score: players[1].score,
-      cellX: Math.floor(players[1].x / 64),
-      cellY: Math.floor(players[1].y / 64),
       respawn: players[1].respawn > 0,
     },
-    fireballs: fireballs.length,
-    spins: spins.length,
-    pulses: pulses.length,
-    bursts: bursts.length,
   })
 }
 
@@ -415,7 +393,7 @@ function ensureGlyphPrepared() {
 
   glyphText = buildGlyphCorpus()
   const started = performance.now()
-  glyphPrepared = prepareWithSegments(glyphText, typography.font)
+  glyphPrepared = prepareWithSegments(glyphText, typography.font, { whiteSpace: 'pre-wrap' })
   lastLayoutStats.prepareMs = performance.now() - started
   lastLayoutStats.characters = glyphText.length
   glyphSignature = nextSignature
@@ -830,7 +808,7 @@ function drawGlyphField(obstacles: Obstacle[]) {
   const columnGap = clamp(Math.round(CANVAS_W * 0.032), 22, 52)
   const fullWidth = CANVAS_W - marginX * 2
   const columnWidth = Math.max(120, (fullWidth - columnGap * 2) / 3)
-  const topY = clamp(Math.round(CANVAS_H * 0.05), 18, 40)
+  const topY = clamp(Math.round(CANVAS_H * 0.14), 104, 148)
   const bottomY = CANVAS_H - clamp(Math.round(CANVAS_H * 0.05), 22, 44)
 
   ctx.save()
@@ -998,14 +976,14 @@ function drawWakes() {
 
 function drawPlayer(player: Player) {
   if (player.respawn > 0) return
-  const glyphSize = Math.max(12, Math.round(getGlyphTypography().size * 1.05))
+  const glyphSize = Math.max(13, Math.round(getGlyphTypography().size * 1.15))
   const font = `${glyphSize}px ${GLYPH_FAMILY}`
   const art = getPlayerArt(player)
   const bob = Math.sin(player.bob) * 2
   const alpha = player.invuln > 0 ? 0.46 + Math.abs(Math.sin(timeSeconds * 18)) * 0.32 : 0.96
 
-  drawCenteredAscii(art, player.x, player.y - 42 + bob, font, player.glow, 0.26)
-  drawCenteredAscii(art, player.x, player.y - 43 + bob, font, player.color, alpha)
+  drawCenteredAscii(art, player.x, player.y - 46 + bob, font, player.glow, 0.26)
+  drawCenteredAscii(art, player.x, player.y - 47 + bob, font, player.color, alpha)
 }
 
 function drawHud() {
