@@ -220,7 +220,6 @@ let lastLayoutStats: LayoutStats = {
 }
 
 let timeSeconds = 0
-let introAlpha = 1
 let lastViewport = { w: 800, h: 500 }
 
 function clamp(value: number, min: number, max: number): number {
@@ -509,7 +508,6 @@ function updatePlayers(dt: number) {
       player.x += nx * 245 * spinBoost * dt
       player.y += ny * 245 * spinBoost * dt
       player.facing = { x: nx, y: ny }
-      introAlpha = Math.max(0, introAlpha - dt * 2.5)
       spawnWake(player.x, player.y + 4, 12, player.color)
     }
 
@@ -1043,25 +1041,6 @@ function drawHud() {
   ctx.fillText(`layout ${lastLayoutStats.layoutMs.toFixed(2)}ms  prepare ${lastLayoutStats.prepareMs.toFixed(2)}ms`, statsX + 14, 20)
   ctx.fillText(`lines ${lastLayoutStats.lines}  chars ${lastLayoutStats.characters}`, statsX + 14, 38)
   ctx.fillText(`fireballs ${fireballs.length}  spins ${spins.length}  pulses ${pulses.length}`, statsX + 14, 56)
-
-  if (introAlpha > 0.01) {
-    const introW = Math.min(620, CANVAS_W - 60)
-    const introH = 112
-    const introX = (CANVAS_W - introW) * 0.5
-    const introY = CANVAS_H * 0.12
-    ctx.globalAlpha = introAlpha
-    ctx.fillStyle = 'rgba(18, 12, 9, 0.9)'
-    ctx.fillRect(introX, introY, introW, introH)
-    ctx.strokeStyle = COLORS.panelBorder
-    ctx.strokeRect(introX + 0.5, introY + 0.5, introW - 1, introH - 1)
-    ctx.font = `${Math.max(18, ui.size + 7)}px ${UI_FAMILY}`
-    ctx.fillStyle = COLORS.menuHighlight
-    ctx.fillText('Local Two-Player Duel Is Live', introX + 18, introY + 18)
-    ctx.font = ui.font
-    ctx.fillStyle = COLORS.ui
-    ctx.fillText('Both players bend the three-column glyph stream at the same time while hits, kills, and score updates keep reflowing the screen.', introX + 18, introY + 52)
-    ctx.fillText('P1: WASD + F/G/H    P2: Arrow Keys + J/K/L', introX + 18, introY + 76)
-  }
 
   ctx.restore()
 }
